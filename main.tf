@@ -123,7 +123,7 @@ resource "kubernetes_cluster_role" "cluster_role" {
   }
   rule {
     api_groups = ["extensions"]
-    resources = ["replicasets","daemonsets"]
+    resources = ["daemonsets"]
     verbs = ["watch","list","get"]
   }
   rule {
@@ -133,7 +133,7 @@ resource "kubernetes_cluster_role" "cluster_role" {
   }
   rule {
     api_groups = ["apps"]
-    resources = ["statefulsets"]
+    resources = ["replicasets","statefulsets"]
     verbs = ["watch","list","get"]
   }
   rule {
