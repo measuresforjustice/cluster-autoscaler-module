@@ -261,7 +261,6 @@ resource "kubernetes_deployment" "deployment" {
       }
 
       spec {
-        #!!!!set manually: automount_service_account_token = "true"  ### automountServiceAccountToken: true
         service_account_name = "${kubernetes_service_account.cluster-autoscaler-sa.metadata.0.name}"
 
         container {
