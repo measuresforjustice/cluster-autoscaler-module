@@ -41,57 +41,58 @@ resource "aws_iam_policy" "cluster-autoscaler-policy" {
   ]
 }
 EOF
+
 }
 
 resource "aws_iam_user_policy_attachment" "cluster-autoscaler-attach" {
-  user       = "${aws_iam_user.cluster-autoscaler-user.name}"
-  policy_arn = "${aws_iam_policy.cluster-autoscaler-policy.arn}"
+  user = aws_iam_user.cluster-autoscaler-user.name
+  policy_arn = aws_iam_policy.cluster-autoscaler-policy.arn
 }
 
 resource "aws_iam_access_key" "cluster-autoscaler-key" {
-  user = "${aws_iam_user.cluster-autoscaler-user.name}"
+  user = aws_iam_user.cluster-autoscaler-user.name
 }
 
 resource "kubernetes_secret" "aws_key" {
   metadata {
-    name      = "cluster-autoscaler-aws"
+    name = "cluster-autoscaler-aws"
     namespace = "kube-system"
   }
 
-  data {
-    "key_id" = "${aws_iam_access_key.cluster-autoscaler-key.id}"
-    "key"    = "${aws_iam_access_key.cluster-autoscaler-key.secret}"
+  data = {
+    "key_id" = aws_iam_access_key.cluster-autoscaler-key.id
+    "key" = aws_iam_access_key.cluster-autoscaler-key.secret
   }
 }
 
 resource "kubernetes_service_account" "cluster-autoscaler-sa" {
   metadata {
-    name      = "cluster-autoscaler"
+    name = "cluster-autoscaler"
     namespace = "kube-system"
-    labels {
+    labels = {
       "k8s-addon" = "cluster-autoscaler.addons.k8s.io"
       "k8s-app" = "cluster-autoscaler"
     }
   }
 
   secret {
-    name = "${kubernetes_secret.aws_key.metadata.0.name}"
+    name = kubernetes_secret.aws_key.metadata[0].name
   }
   automount_service_account_token = "true"
 }
 
 resource "kubernetes_cluster_role" "cluster_role" {
   metadata {
-    name      = "cluster-autoscaler"
-    labels {
+    name = "cluster-autoscaler"
+    labels = {
       "k8s-addon" = "cluster-autoscaler.addons.k8s.io"
       "k8s-app" = "cluster-autoscaler"
     }
   }
 
   rule {
-    api_groups = ["",]
-    resources = ["events","endpoints"]
+    api_groups = [""]
+    resources = ["events", "endpoints"]
     verbs = ["create", "patch"]
   }
   rule {
@@ -108,45 +109,50 @@ resource "kubernetes_cluster_role" "cluster_role" {
     api_groups = [""]
     resources = ["endpoints"]
     resource_names = ["cluster-autoscaler"]
-    verbs = ["get","update"]
+    verbs = ["get", "update"]
   }
   rule {
     api_groups = [""]
     resources = ["nodes"]
-    verbs = ["watch","list","get","update"]
+    verbs = ["watch", "list", "get", "update"]
   }
   rule {
     api_groups = [""]
-    resources = ["pods","services","replicationcontrollers",
-      "persistentvolumeclaims","persistentvolumes"]
-    verbs = ["watch","list","get"]
+    resources = [
+      "pods",
+      "services",
+      "replicationcontrollers",
+      "persistentvolumeclaims",
+      "persistentvolumes",
+    ]
+    verbs = ["watch", "list", "get"]
   }
   rule {
     api_groups = ["extensions"]
     resources = ["daemonsets"]
-    verbs = ["watch","list","get"]
+    verbs = ["watch", "list", "get"]
   }
   rule {
     api_groups = ["policy"]
     resources = ["poddisruptionbudgets"]
-    verbs = ["watch","list"]
+    verbs = ["watch", "list"]
   }
   rule {
     api_groups = ["apps"]
-    resources = ["replicasets","statefulsets"]
-    verbs = ["watch","list","get"]
+    resources = ["replicasets", "statefulsets"]
+    verbs = ["watch", "list", "get"]
   }
   rule {
     api_groups = ["storage.k8s.io"]
     resources = ["storageclasses"]
-    verbs = ["watch","list","get"]
+    verbs = ["watch", "list", "get"]
   }
 }
 
 resource "kubernetes_cluster_role_binding" "cluster_role_bind" {
   metadata {
     name = "cluster-autoscaler"
-    labels {
+    labels = {
       "k8s-addon" = "cluster-autoscaler.addons.k8s.io"
       "k8s-app" = "cluster-autoscaler"
     }
@@ -154,14 +160,14 @@ resource "kubernetes_cluster_role_binding" "cluster_role_bind" {
 
   role_ref {
     api_group = "rbac.authorization.k8s.io"
-    name = "${kubernetes_cluster_role.cluster_role.metadata.0.name}"
+    name = kubernetes_cluster_role.cluster_role.metadata[0].name
     kind = "ClusterRole"
   }
 
   subject {
     api_group = ""
     kind = "ServiceAccount"
-    name = "${kubernetes_service_account.cluster-autoscaler-sa.metadata.0.name}"
+    name = kubernetes_service_account.cluster-autoscaler-sa.metadata[0].name
     namespace = "kube-system"
   }
 }
@@ -170,7 +176,7 @@ resource "kubernetes_role" "cluster-autoscaler-role" {
   metadata {
     name = "cluster-autoscaler"
     namespace = "kube-system"
-    labels {
+    labels = {
       "k8s-addon" = "cluster-autoscaler.addons.k8s.io"
       "k8s-app" = "cluster-autoscaler"
     }
@@ -199,13 +205,13 @@ resource "kubernetes_role" "cluster-autoscaler-role" {
     ]
 
     resource_names = [
-      "cluster-autoscaler-status"
+      "cluster-autoscaler-status",
     ]
 
     verbs = [
       "delete",
       "get",
-      "update"
+      "update",
     ]
   }
 }
@@ -214,7 +220,7 @@ resource "kubernetes_role_binding" "role_bind" {
   metadata {
     name = "cluster-autoscaler"
     namespace = "kube-system"
-    labels {
+    labels = {
       "k8s-addon" = "cluster-autoscaler.addons.k8s.io"
       "k8s-app" = "cluster-autoscaler"
     }
@@ -222,24 +228,24 @@ resource "kubernetes_role_binding" "role_bind" {
 
   role_ref {
     api_group = "rbac.authorization.k8s.io"
-    name = "${kubernetes_role.cluster-autoscaler-role.metadata.0.name}"
+    name = kubernetes_role.cluster-autoscaler-role.metadata[0].name
     kind = "Role"
   }
 
   subject {
     api_group = ""
     kind = "ServiceAccount"
-    name = "${kubernetes_service_account.cluster-autoscaler-sa.metadata.0.name}"
+    name = kubernetes_service_account.cluster-autoscaler-sa.metadata[0].name
     namespace = "kube-system"
   }
 }
 
 resource "kubernetes_deployment" "deployment" {
   metadata {
-    name      = "cluster-autoscaler"
+    name = "cluster-autoscaler"
     namespace = "kube-system"
 
-    labels {
+    labels = {
       "app" = "cluster-autoscaler"
     }
   }
@@ -248,20 +254,20 @@ resource "kubernetes_deployment" "deployment" {
     replicas = 1
 
     selector {
-      match_labels {
+      match_labels = {
         app = "cluster-autoscaler"
       }
     }
 
     template {
       metadata {
-        labels {
+        labels = {
           app = "cluster-autoscaler"
         }
       }
 
       spec {
-        service_account_name = "${kubernetes_service_account.cluster-autoscaler-sa.metadata.0.name}"
+        service_account_name = kubernetes_service_account.cluster-autoscaler-sa.metadata[0].name
 
         container {
           command = [
@@ -270,14 +276,14 @@ resource "kubernetes_deployment" "deployment" {
             "--cloud-provider=aws",
             "--skip-nodes-with-local-storage=false",
             "--expander=least-waste",
-            "--node-group-auto-discovery=asg:tag=k8s.io/cluster-autoscaler/enabled,kubernetes.io/cluster/${var.cluster_name}"
+            "--node-group-auto-discovery=asg:tag=k8s.io/cluster-autoscaler/enabled,kubernetes.io/cluster/${var.cluster_name}",
           ]
 
           security_context {
             allow_privilege_escalation = "false"
-            privileged                 = "false"
-            run_as_user                = "999"
-            run_as_non_root            = "true"
+            privileged = "false"
+            run_as_user = "999"
+            run_as_non_root = "true"
           }
 
           resources {
@@ -296,8 +302,8 @@ resource "kubernetes_deployment" "deployment" {
 
             value_from {
               secret_key_ref {
-                name = "${kubernetes_secret.aws_key.metadata.0.name}"
-                key  = "key_id"
+                name = kubernetes_secret.aws_key.metadata[0].name
+                key = "key_id"
               }
             }
           }
@@ -307,18 +313,18 @@ resource "kubernetes_deployment" "deployment" {
 
             value_from {
               secret_key_ref {
-                name = "${kubernetes_secret.aws_key.metadata.0.name}"
-                key  = "key"
+                name = kubernetes_secret.aws_key.metadata[0].name
+                key = "key"
               }
             }
           }
 
           env {
-            name  = "AWS_DEFAULT_REGION"
-            value = "${var.aws_region}"
+            name = "AWS_DEFAULT_REGION"
+            value = var.aws_region
           }
 
-          image             = "gcr.io/google-containers/cluster-autoscaler:v${var.autoscaler_version}"
+          image = "gcr.io/google-containers/cluster-autoscaler:v${var.autoscaler_version}"
           image_pull_policy = "Always"
 
           name = "cluster-autoscaler"
@@ -328,7 +334,6 @@ resource "kubernetes_deployment" "deployment" {
             mount_path = "/etc/ssl/certs/ca-certificates.crt"
             read_only = "true"
           }
-
         }
         volume {
           name = "ssl-certs"

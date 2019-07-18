@@ -15,7 +15,7 @@ limitations under the License.
 */
 
 variable "aws_region" {
-  default = "us-east-1"
+  default     = "us-east-1"
   description = "aws region to use"
 }
 
