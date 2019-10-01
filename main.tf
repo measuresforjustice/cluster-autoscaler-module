@@ -139,7 +139,12 @@ resource "kubernetes_cluster_role" "cluster_role" {
   }
   rule {
     api_groups = ["apps"]
-    resources = ["replicasets", "statefulsets"]
+    resources = ["replicasets", "statefulsets", "daemonsets"]
+    verbs = ["watch", "list", "get"]
+  }
+  rule {
+    api_groups = ["batch"]
+    resources = ["jobs"]
     verbs = ["watch", "list", "get"]
   }
   rule {
