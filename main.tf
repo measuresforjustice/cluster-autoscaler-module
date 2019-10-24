@@ -13,9 +13,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-resource "aws_iam_user" "cluster-autoscaler-user" {
-  name = "cluster-autoscaler"
-}
 
 resource "aws_iam_policy" "cluster-autoscaler-policy" {
   name = "cluster-autoscaler"
@@ -44,40 +41,51 @@ EOF
 
 }
 
-resource "aws_iam_user_policy_attachment" "cluster-autoscaler-attach" {
-  user = aws_iam_user.cluster-autoscaler-user.name
+locals {
+  sa_name = "cluster-autoscaler"
+}
+
+data "aws_iam_policy_document" "assume_role_policy" {
+  statement {
+    actions = ["sts:AssumeRoleWithWebIdentity"]
+    effect  = "Allow"
+
+    condition {
+      test     = "StringEquals"
+      variable = "${replace(var.openid_url, "https://", "")}:sub"
+      values   = ["system:serviceaccount:kube-system:${local.sa_name}"]
+    }
+
+    principals {
+      identifiers = [var.openid_arn]
+      type        = "Federated"
+    }
+  }
+}
+
+resource "aws_iam_role" "role" {
+  assume_role_policy = data.aws_iam_policy_document.assume_role_policy.json
+  name = "cluster-autoscaler"
+}
+
+resource "aws_iam_role_policy_attachment" "role-policy-attach" {
+  role       = aws_iam_role.role.name
   policy_arn = aws_iam_policy.cluster-autoscaler-policy.arn
-}
-
-resource "aws_iam_access_key" "cluster-autoscaler-key" {
-  user = aws_iam_user.cluster-autoscaler-user.name
-}
-
-resource "kubernetes_secret" "aws_key" {
-  metadata {
-    name = "cluster-autoscaler-aws"
-    namespace = "kube-system"
-  }
-
-  data = {
-    "key_id" = aws_iam_access_key.cluster-autoscaler-key.id
-    "key" = aws_iam_access_key.cluster-autoscaler-key.secret
-  }
 }
 
 resource "kubernetes_service_account" "cluster-autoscaler-sa" {
   metadata {
-    name = "cluster-autoscaler"
+    name = local.sa_name
     namespace = "kube-system"
+    annotations = {
+      "eks.amazonaws.com/role-arn" = aws_iam_role.role.arn
+    }
     labels = {
       "k8s-addon" = "cluster-autoscaler.addons.k8s.io"
       "k8s-app" = "cluster-autoscaler"
     }
   }
 
-  secret {
-    name = kubernetes_secret.aws_key.metadata[0].name
-  }
   automount_service_account_token = "true"
 }
 
@@ -274,7 +282,9 @@ resource "kubernetes_deployment" "deployment" {
       spec {
         automount_service_account_token = true
         service_account_name = kubernetes_service_account.cluster-autoscaler-sa.metadata[0].name
-
+        security_context {
+          fs_group = "999"
+        }
         container {
           command = [
             "./cluster-autoscaler",
@@ -301,33 +311,6 @@ resource "kubernetes_deployment" "deployment" {
               cpu = "100m"
               memory = "300Mi"
             }
-          }
-
-          env {
-            name = "AWS_ACCESS_KEY_ID"
-
-            value_from {
-              secret_key_ref {
-                name = kubernetes_secret.aws_key.metadata[0].name
-                key = "key_id"
-              }
-            }
-          }
-
-          env {
-            name = "AWS_SECRET_ACCESS_KEY"
-
-            value_from {
-              secret_key_ref {
-                name = kubernetes_secret.aws_key.metadata[0].name
-                key = "key"
-              }
-            }
-          }
-
-          env {
-            name = "AWS_DEFAULT_REGION"
-            value = var.aws_region
           }
 
           image = "gcr.io/google-containers/cluster-autoscaler:v${var.autoscaler_version}"

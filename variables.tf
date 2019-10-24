@@ -26,3 +26,11 @@ variable "autoscaler_version" {
 variable "cluster_name" {
   description = "Name of your k8 cluster"
 }
+
+variable "openid_url" {
+  description = "OpenID url of your k8 cluster"
+}
+
+variable "openid_arn" {
+  description = "OpenID ARN of your k8 cluster"
+}
