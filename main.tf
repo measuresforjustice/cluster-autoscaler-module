@@ -288,11 +288,14 @@ resource "kubernetes_deployment" "deployment" {
         container {
           command = [
             "./cluster-autoscaler",
-            "--v=2",
+            "--v=4",
+            "--stderrthreshold=info",
             "--cloud-provider=aws",
             "--skip-nodes-with-local-storage=false",
             "--expander=least-waste",
             "--node-group-auto-discovery=asg:tag=k8s.io/cluster-autoscaler/enabled,kubernetes.io/cluster/${var.cluster_name}",
+            "--balance-similar-node-groups",
+            "--skip-nodes-with-system-pods=false"
           ]
 
           security_context {
