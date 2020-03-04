@@ -283,7 +283,7 @@ resource "kubernetes_deployment" "deployment" {
         automount_service_account_token = true
         service_account_name = kubernetes_service_account.cluster-autoscaler-sa.metadata[0].name
         security_context {
-          fs_group = "999"
+          fs_group = "1001"
         }
         container {
           command = [
@@ -301,7 +301,11 @@ resource "kubernetes_deployment" "deployment" {
           security_context {
             allow_privilege_escalation = "false"
             privileged = "false"
-            run_as_user = "999"
+            capabilities {
+              drop = ["all"]
+            }
+            run_as_user = "1001"
+            run_as_group = "1001"
             run_as_non_root = "true"
           }
 
