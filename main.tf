@@ -320,7 +320,7 @@ resource "kubernetes_deployment" "deployment" {
             }
           }
 
-          image = "gcr.io/google-containers/cluster-autoscaler:v${var.autoscaler_version}"
+          image = "us.gcr.io/k8s-artifacts-prod/autoscaling/cluster-autoscaler:v${var.autoscaler_version}"
           image_pull_policy = "Always"
 
           name = "cluster-autoscaler"
