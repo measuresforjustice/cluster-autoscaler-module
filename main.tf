@@ -151,14 +151,25 @@ resource "kubernetes_cluster_role" "cluster_role" {
     verbs = ["watch", "list", "get"]
   }
   rule {
-    api_groups = ["batch"]
+    api_groups = ["batch", "extensions"]
     resources = ["jobs"]
     verbs = ["watch", "list", "get"]
   }
   rule {
     api_groups = ["storage.k8s.io"]
-    resources = ["storageclasses"]
+    resources = ["storageclasses", "csinodes"]
     verbs = ["watch", "list", "get"]
+  }
+  rule {
+    api_groups = ["coordination.k8s.io"]
+    resources = ["leases"]
+    verbs = ["create"]
+  }
+  rule {
+    api_groups = ["coordination.k8s.io"]
+    resource_names = ["cluster-autoscaler"]
+    resources = ["leases"]
+    verbs = ["get", "update"]
   }
 }
 
@@ -206,6 +217,8 @@ resource "kubernetes_role" "cluster-autoscaler-role" {
 
     verbs = [
       "create",
+      "list",
+      "watch"
     ]
   }
   rule {
@@ -218,13 +231,14 @@ resource "kubernetes_role" "cluster-autoscaler-role" {
     ]
 
     resource_names = [
-      "cluster-autoscaler-status",
+      "cluster-autoscaler-status", "cluster-autoscaler-priority-expander"
     ]
 
     verbs = [
       "delete",
       "get",
       "update",
+      "watch"
     ]
   }
 }
