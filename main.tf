@@ -136,11 +136,6 @@ resource "kubernetes_cluster_role" "cluster_role" {
     verbs = ["watch", "list", "get"]
   }
   rule {
-    api_groups = ["extensions"]
-    resources = ["daemonsets"]
-    verbs = ["watch", "list", "get"]
-  }
-  rule {
     api_groups = ["policy"]
     resources = ["poddisruptionbudgets"]
     verbs = ["watch", "list"]
@@ -151,8 +146,8 @@ resource "kubernetes_cluster_role" "cluster_role" {
     verbs = ["watch", "list", "get"]
   }
   rule {
-    api_groups = ["batch", "extensions"]
-    resources = ["jobs"]
+    api_groups = ["batch"]
+    resources = ["jobs", "cronjobs"]
     verbs = ["watch", "list", "get"]
   }
   rule {
@@ -296,6 +291,7 @@ resource "kubernetes_deployment" "deployment" {
       spec {
         automount_service_account_token = true
         service_account_name = kubernetes_service_account.cluster-autoscaler-sa.metadata[0].name
+        priority_class_name = "system-cluster-critical"
         security_context {
           fs_group = "1001"
         }
