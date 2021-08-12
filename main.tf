@@ -154,7 +154,7 @@ resource "kubernetes_cluster_role" "cluster_role" {
   }
   rule {
     api_groups = ["storage.k8s.io"]
-    resources  = ["storageclasses", "csinodes", "csistoragecapacities"]
+    resources  = ["storageclasses", "csinodes", "csistoragecapacities", "csidrivers"]
     verbs      = ["watch", "list", "get"]
   }
   rule {
