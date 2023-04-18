@@ -136,6 +136,7 @@ resource "kubernetes_cluster_role" "cluster_role" {
       "replicationcontrollers",
       "persistentvolumeclaims",
       "persistentvolumes",
+      "namespaces",
     ]
     verbs = ["watch", "list", "get"]
   }
