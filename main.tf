@@ -312,6 +312,7 @@ resource "kubernetes_deployment" "deployment" {
             "--cloud-provider=aws",
             "--skip-nodes-with-local-storage=false",
             "--expander=least-waste",
+            "--scale-down-utilization-threshold=${var.scale_down_threshold}",
             "--node-group-auto-discovery=asg:tag=k8s.io/cluster-autoscaler/enabled,kubernetes.io/cluster/${var.cluster_name}",
             "--balance-similar-node-groups",
             "--skip-nodes-with-system-pods=false"

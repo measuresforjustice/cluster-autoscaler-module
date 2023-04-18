@@ -23,6 +23,11 @@ variable "autoscaler_version" {
   description = "Version of cluster-autoscaler to use"
 }
 
+variable "scale_down_threshold"{
+  description = "Sum of requested resources divided by capacity, below which a node can be considered for scale down"
+  default = ".5"
+}
+
 variable "cluster_name" {
   description = "Name of your k8 cluster"
 }
