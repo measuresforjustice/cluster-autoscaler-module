@@ -313,7 +313,7 @@ resource "kubernetes_deployment" "deployment" {
             "--skip-nodes-with-local-storage=false",
             "--expander=least-waste",
             "--scale-down-utilization-threshold=${var.scale_down_threshold}",
-            "--node-group-auto-discovery=asg:tag=k8s.io/cluster-autoscaler/enabled,kubernetes.io/cluster/${var.cluster_name}",
+            "--node-group-auto-discovery=asg:tag=k8s.io/cluster-autoscaler/enabled=true,k8s.io/cluster-autoscaler/${var.cluster_name}=owned",
             "--balance-similar-node-groups",
             "--skip-nodes-with-system-pods=false"
           ]
