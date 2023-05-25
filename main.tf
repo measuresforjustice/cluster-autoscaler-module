@@ -345,7 +345,7 @@ resource "kubernetes_deployment" "deployment" {
             container_port = 8085
           }
 
-          image             = "us.gcr.io/k8s-artifacts-prod/autoscaling/cluster-autoscaler:v${var.autoscaler_version}"
+          image             = "registry.k8s.io/autoscaling/cluster-autoscaler:v${var.autoscaler_version}"
           image_pull_policy = "Always"
 
           name = "cluster-autoscaler"
