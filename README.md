@@ -1,3 +1,9 @@
+# Archived
+Please use the official helm chart
+https://github.com/kubernetes/autoscaler/tree/master/charts/cluster-autoscaler
+https://artifacthub.io/packages/helm/cluster-autoscaler/cluster-autoscaler
+
+
 # cluster-autoscaler terraform module
 
 Terraform module for creating cluster-autoscaler in kubernetes with an IAM user
